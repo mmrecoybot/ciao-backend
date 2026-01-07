@@ -12,6 +12,7 @@
     "seed": "node prisma/seed.js",
     "backup": "node prisma/backup-seed.js"
   },
+
   "prisma": {
     "seed": "node prisma/seed.js"
   },
