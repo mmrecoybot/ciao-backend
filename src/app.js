@@ -12,11 +12,18 @@ const app = express();
 
 app.use(morgan("dev"));
 app.use(helmet());
-app.use(cors({
-  origin: process.env.CLIENT_URL || "http://localhost:3000", // Restrict to frontend URL
-  methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
+app.use(
+  cors({
+    origin:
+      process.env.CLIENT_URL ||
+      "http://localhost:3000" ||
+      "https://www.ciaomobile.eu" ||
+      "https://ciaomobile.eu",
+    // Restrict to frontend URL
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
 app.use(express.json());
 
 app.get("/", (req, res) => {
@@ -31,6 +38,5 @@ app.use("/api/v1", api);
 app.use(middlewares.notFound);
 app.use(middlewares.errorHandler);
 // Middleware to log response data
-
 
 module.exports = app;
