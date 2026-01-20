@@ -21,8 +21,8 @@ const allowedOrigins = [
 ];
 
 // Add the environment variable to the list if it exists
-if (process.env.CLIENT_URL) {
-  allowedOrigins.push(process.env.CLIENT_URL);
+if (process.env.APP_URL) {
+  allowedOrigins.push(process.env.APP_URL);
 }
 
 app.use(
