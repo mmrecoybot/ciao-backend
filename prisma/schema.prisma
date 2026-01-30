@@ -27,12 +27,12 @@ model Role {
 }
 
 model Permission {
-  id          Int      @id @default(autoincrement())
-  name        String   @unique
+  id          Int       @id @default(autoincrement())
+  name        String    @unique
   description String?
   roles       Role[]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
   deletedAt   DateTime? // NULL means not deleted
 }
 
@@ -86,11 +86,11 @@ model User {
 }
 
 model passwordReset {
-  id        Int      @id @default(autoincrement())
-  token     String   @unique
-  userId    Int      @unique
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
+  id        Int       @id @default(autoincrement())
+  token     String    @unique
+  userId    Int       @unique
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now())
   deletedAt DateTime? // NULL means not deleted
 
   @@index([userId])
@@ -98,11 +98,11 @@ model passwordReset {
 }
 
 model otp {
-  id        Int      @id @default(autoincrement())
-  token     String   @unique
-  userId    Int      @unique
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
+  id        Int       @id @default(autoincrement())
+  token     String    @unique
+  userId    Int       @unique
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now())
   deletedAt DateTime? // NULL means not deleted
 
   @@index([userId])
@@ -110,11 +110,11 @@ model otp {
 }
 
 model refreshToken {
-  id        Int      @id @default(autoincrement())
-  token     String   @unique
+  id        Int       @id @default(autoincrement())
+  token     String    @unique
   userId    Int
-  user      User     @relation(fields: [userId], references: [id])
-  createdAt DateTime @default(now())
+  user      User      @relation(fields: [userId], references: [id])
+  createdAt DateTime  @default(now())
   deletedAt DateTime? // NULL means not deleted
 
   @@index([userId])
@@ -122,11 +122,11 @@ model refreshToken {
 }
 
 model adminRefreshToken {
-  id        Int      @id @default(autoincrement())
-  token     String   @unique
+  id        Int       @id @default(autoincrement())
+  token     String    @unique
   adminId   Int
-  admin     Admin    @relation(fields: [adminId], references: [id])
-  createdAt DateTime @default(now())
+  admin     Admin     @relation(fields: [adminId], references: [id])
+  createdAt DateTime  @default(now())
   deletedAt DateTime? // NULL means not deleted
 
   @@index([adminId])
@@ -270,14 +270,14 @@ model OrderItem {
 }
 
 model OrderStatusHistory {
-  id          Int      @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   orderId     Int
   status      String
   changedById Int
   remarks     String? // Track remarks in the history table
-  changedAt   DateTime @default(now())
-  changedBy   User     @relation(fields: [changedById], references: [id])
-  order       Order    @relation(fields: [orderId], references: [id])
+  changedAt   DateTime  @default(now())
+  changedBy   User      @relation(fields: [changedById], references: [id])
+  order       Order     @relation(fields: [orderId], references: [id])
   deletedAt   DateTime? // NULL means not deleted
 
   @@index([orderId])
@@ -462,29 +462,36 @@ model notification {
 }
 
 model Dealer {
-  id              Int              @id @default(autoincrement())
-  dealerCode      String           @unique
-  companyName     String           @unique
-  vatNumber       String?           @unique
-  taxCode         String?
-  adminPhone      String           @unique
-  pecEmail        String?           @unique
-  adminEmail      String           @unique
-  iban            String?           @unique
-  paymentMethod   String?
-  accountNumber   String?
-  recoveryEmail   String?           @unique
-  websiteUrl      String?
+  id Int @id @default(autoincrement())
+
+  dealerCode String @unique // system identity
+
+  companyName String
+  vatNumber   String?
+  taxCode     String?
+
+  adminPhone    String
+  adminEmail    String
+  pecEmail      String?
+  recoveryEmail String?
+
+  iban          String?
+  paymentMethod String?
+  accountNumber String?
+  websiteUrl    String?
+
   billingAddress  BillingAddress?
   creditDetails   CreditDetails?
   salePoints      SalePoint[]
   signedContracts SignedContract[]
-  createdAt       DateTime         @default(now())
-  updatedAt       DateTime         @updatedAt
-  deletedAt       DateTime? // NULL means not deleted
-  User            User[]
-  Documents       Documents[]
-  serialNumber    serialNumber[]
+
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  deletedAt DateTime?
+
+  User         User[]
+  Documents    Documents[]
+  serialNumber serialNumber[]
 
   @@index([companyName])
   @@index([vatNumber])
@@ -503,58 +510,58 @@ model Dealer {
 // Document attachment file:
 // Visura attachment file:
 model BillingAddress {
-  id           Int    @id @default(autoincrement())
-  dealerId     Int    @unique
+  id           Int       @id @default(autoincrement())
+  dealerId     Int       @unique
   street       String
   number       String
   zipCode      String
   country      String
   municipality String
   province     String
-  dealer       Dealer @relation(fields: [dealerId], references: [id])
+  dealer       Dealer    @relation(fields: [dealerId], references: [id])
   deletedAt    DateTime? // NULL means not deleted
 }
 
 model CreditDetails {
-  id                   Int    @id @default(autoincrement())
-  dealerId             Int    @unique
+  id                   Int       @id @default(autoincrement())
+  dealerId             Int       @unique
   assignedCreditLimit  Float
   invoicesToPay        Float
   availableCreditLimit Float
   escudo               Float
   creditForTopUps      Float
-  dealer               Dealer @relation(fields: [dealerId], references: [id])
+  dealer               Dealer    @relation(fields: [dealerId], references: [id])
   deletedAt            DateTime? // NULL means not deleted
 }
 
 model SalePoint {
-  id          Int    @id @default(autoincrement())
+  id          Int       @id @default(autoincrement())
   dealerId    Int
   name        String
   address     String
   city        String
   province    String
   phoneNumber String
-  dealer      Dealer @relation(fields: [dealerId], references: [id])
+  dealer      Dealer    @relation(fields: [dealerId], references: [id])
   deletedAt   DateTime? // NULL means not deleted
 }
 
 model SignedContract {
-  id       Int      @id @default(autoincrement())
-  dealerId Int
-  name     String
-  signedOn DateTime
-  fileUrl  String
-  dealer   Dealer   @relation(fields: [dealerId], references: [id])
+  id        Int       @id @default(autoincrement())
+  dealerId  Int
+  name      String
+  signedOn  DateTime
+  fileUrl   String
+  dealer    Dealer    @relation(fields: [dealerId], references: [id])
   deletedAt DateTime? // NULL means not deleted
 }
 
 model Documents {
-  id       Int    @id @default(autoincrement())
-  dealerId Int
-  name     String
-  fileUrl  String
-  dealer   Dealer @relation(fields: [dealerId], references: [id])
+  id        Int       @id @default(autoincrement())
+  dealerId  Int
+  name      String
+  fileUrl   String
+  dealer    Dealer    @relation(fields: [dealerId], references: [id])
   deletedAt DateTime? // NULL means not deleted
 }
 
@@ -570,14 +577,14 @@ model Workflow {
 }
 
 model WorkflowStep {
-  id         Int      @id @default(autoincrement())
+  id         Int       @id @default(autoincrement())
   workflowId Int
   action     String // e.g., "Order Placed", "Payment Processed", "Order Canceled"
   actorId    Int // Reference to the User or System
   actorRole  String // Role of the actor, e.g., "Customer", "Admin", "System"
   metadata   Json? // Additional info, e.g., { "reason": "User Request" }
-  createdAt  DateTime @default(now())
-  workflow   Workflow @relation(fields: [workflowId], references: [id])
+  createdAt  DateTime  @default(now())
+  workflow   Workflow  @relation(fields: [workflowId], references: [id])
   deletedAt  DateTime? // NULL means not deleted
   Actor      Actor[]
 
