@@ -20,7 +20,6 @@
 //   OrderStatusHistory OrderStatusHistory[]
 // }
 
-
 const prisma = require("../config/db");
 
 const adminControllers = {
@@ -30,31 +29,34 @@ const adminControllers = {
       const user = req.user;
       // Find all users where deletedAt is null
       const adminUsers = await prisma.user.findMany({
-        where: { deletedAt: null, role: { name: { notIn: ['SuperAdmin'] } } }, // Add this condition
+        where: { deletedAt: null, role: { name: { notIn: ["SuperAdmin"] } } }, // Add this condition
         include: {
           role: { select: { name: true } }, // Include role name
-          dealer: { // Include dealer details
+          dealer: {
+            // Include dealer details
             select: {
               id: true,
               companyName: true,
             },
           },
-
         },
         orderBy: { id: "asc" }, // Keep original ordering
       });
 
       const managerUsers = await prisma.user.findMany({
-        where: { deletedAt: null, role: { name: { notIn: ['SuperAdmin', 'admin'] } } }, // Add this condition
+        where: {
+          deletedAt: null,
+          role: { name: { notIn: ["SuperAdmin", "admin"] } },
+        }, // Add this condition
         include: {
           role: { select: { name: true } }, // Include role name
-          dealer: { // Include dealer details
+          dealer: {
+            // Include dealer details
             select: {
               id: true,
               companyName: true,
             },
           },
-
         },
         orderBy: { id: "asc" }, // Keep original ordering
       });
@@ -62,18 +64,26 @@ const adminControllers = {
       const allUsers = await prisma.user.findMany({
         include: {
           role: { select: { name: true } }, // Include role name
-          dealer: { // Include dealer details
+          dealer: {
+            // Include dealer details
             select: {
               id: true,
               companyName: true,
             },
           },
-
         },
         orderBy: { id: "asc" }, // Keep original ordering
       });
 
-      res.status(200).json(user.role.name === 'SuperAdmin' ? allUsers : user.role.name === 'admin' ? adminUsers : managerUsers); // Use status 200
+      res
+        .status(200)
+        .json(
+          user.role.name === "SuperAdmin"
+            ? allUsers
+            : user.role.name === "admin"
+              ? adminUsers
+              : managerUsers,
+        ); // Use status 200
     } catch (error) {
       console.error("Error fetching all users:", error);
       res.status(500).json({ error: error.message || "Internal Server Error" });
@@ -138,7 +148,8 @@ const adminControllers = {
       if (name !== undefined) updateData.name = name;
       if (roleId !== undefined) {
         const roleIdNum = Number(roleId);
-        if (isNaN(roleIdNum)) return res.status(400).json({ error: "Invalid roleId provided." });
+        if (isNaN(roleIdNum))
+          return res.status(400).json({ error: "Invalid roleId provided." });
         updateData.roleId = roleIdNum;
       }
       if (dealerId !== undefined) {
@@ -146,7 +157,8 @@ const adminControllers = {
         // Allow null for dealerId, but validate if not null
         if (!isNaN(dealerIdNum)) updateData.dealerId = dealerIdNum;
         else if (dealerId === null) updateData.dealerId = null;
-        else return res.status(400).json({ error: "Invalid dealerId provided." });
+        else
+          return res.status(400).json({ error: "Invalid dealerId provided." });
       }
       // Include other fields from body if needed for a generic update
       // Object.assign(updateData, otherData); // Be cautious with unexpected fields
@@ -162,79 +174,79 @@ const adminControllers = {
         where: { id: userId },
         data: updateData,
         // Include updated role/dealer in response
-        include: { role: true, dealer: true }
+        include: { role: true, dealer: true },
       });
 
       // Respond with the updated user
       res.status(200).json(user); // Use status 200
-
     } catch (error) {
       console.error("Error updating user:", error);
       // Handle case where ID is not found
-      if (error.code === 'P2025') {
+      if (error.code === "P2025") {
         return res.status(404).json({ error: "User not found." });
       }
       // Handle foreign key constraint violation (P2003) for roleId or dealerId
-      if (error.code === 'P2003') {
-        return res.status(400).json({ error: "Invalid role ID or dealer ID provided." });
+      if (error.code === "P2003") {
+        return res
+          .status(400)
+          .json({ error: "Invalid role ID or dealer ID provided." });
       }
       // Handle unique constraint violation (P2002) if email is updated and conflicts
-      if (error.code === 'P2002') {
-        const target = error.meta?.target?.join(', ') || 'a unique field';
-        return res.status(409).json({ error: `User with the provided ${target} already exists.` });
+      if (error.code === "P2002") {
+        const target = error.meta?.target?.join(", ") || "a unique field";
+        return res
+          .status(409)
+          .json({ error: `User with the provided ${target} already exists.` });
       }
-      res.status(500).json({ error: error.message || "An error occurred while updating the user." });
+      res
+        .status(500)
+        .json({
+          error: error.message || "An error occurred while updating the user.",
+        });
     }
   },
 
   // Soft delete a user
   deleteUser: async (req, res) => {
     try {
-      const userId = parseInt(req.params.id);
+      const userId = Number(req.params.id);
 
-      // Validate ID
       if (isNaN(userId)) {
         return res.status(400).json({ error: "Invalid user ID provided." });
       }
 
-      // Perform soft deletion by updating the deletedAt field
-      // Include deletedAt: null in where to ensure it fails if already deleted
-      const user = await prisma.user.update({
+      const user = await prisma.user.findFirst({
         where: {
           id: userId,
-          deletedAt: null, // Ensure it's not already deleted
-          // Optional Business Logic: Prevent deletion if related entities exist (e.g., active orders)
-          // If you need to check, add a nested where clause here or perform a separate count before update.
-          // E.g., Order: { some: { deletedAt: null, status: { notIn: ['cancelled', 'delivered'] } } } // Prevent if active orders exist
+          deletedAt: null,
         },
-        data: {
-          deletedAt: new Date(), // Set deletedAt to the current date/time
-          // Optional: Clear sensitive fields on soft deletion (e.g., password reset token)
-          passwordResetToken: null,
-          passwordResetExpires: null,
-          // Consider soft-deleting related entities like refresh tokens, carts, etc. in a transaction here.
-          // Soft deleting a user doesn't automatically soft-delete related records unless configured with cascade (hard delete).
-        },
-        select: { id: true, email: true, deletedAt: true } // Select info for response
       });
 
-      // Return a success message for soft deletion
-      res.status(200).json({ message: "User soft deleted successfully", user: user }); // 200 with body is clearer for soft delete
+      if (!user) {
+        return res
+          .status(404)
+          .json({ error: "User not found or already deleted." });
+      }
 
+      const deletedUser = await prisma.user.update({
+        where: { id: userId },
+        data: {
+          deletedAt: new Date(),
+          passwordResetToken: null,
+          passwordResetExpires: null,
+        },
+        select: { id: true, email: true, deletedAt: true },
+      });
+
+      res.status(200).json({
+        message: "User soft deleted successfully",
+        user: deletedUser,
+      });
     } catch (error) {
       console.error("Error soft-deleting user:", error);
-      // Handle case where the user is not found or already soft-deleted (P2025)
-      if (error.code === 'P2025') {
-        return res.status(404).json({ error: "User not found or already deleted." });
-      }
-      // Handle custom delete constraint errors if implemented
-      if (error.message.includes('Cannot delete user')) {
-        return res.status(400).json({ error: error.message });
-      }
-      res.status(500).json({ error: error.message || "Internal Server Error" });
+      res.status(500).json({ error: "Internal Server Error" });
     }
   },
-
   // New function: Undelete a user (Admin action)
   undeleteUser: async (req, res) => {
     try {
@@ -256,7 +268,7 @@ const adminControllers = {
           deletedAt: null, // Set deletedAt to null
           // Optional: Restore other fields if they were cleared on deletion (e.g., password field if it was set to a placeholder)
         },
-        select: { id: true, email: true, deletedAt: true } // Select info for response
+        select: { id: true, email: true, deletedAt: true }, // Select info for response
       });
 
       // Optional: Also undelete related entities if they were soft-deleted when the user was deleted.
@@ -270,21 +282,23 @@ const adminControllers = {
       //    ... etc for other relations
       // });
 
-
       // Return a success message for undeletion
-      res.status(200).json({ message: "User undeleted successfully", user: user }); // 200 with body
-
+      res
+        .status(200)
+        .json({ message: "User undeleted successfully", user: user }); // 200 with body
     } catch (error) {
       console.error("Error undeleting user:", error);
       // Handle case where the user is not found or is not deleted (P2025)
-      if (error.code === 'P2025') {
-        return res.status(404).json({ message: "User not found or is not deleted." });
+      if (error.code === "P2025") {
+        return res
+          .status(404)
+          .json({ message: "User not found or is not deleted." });
       }
-      res.status(500).json({ message: error.message || "Internal Server Error" });
+      res
+        .status(500)
+        .json({ message: error.message || "Internal Server Error" });
     }
-  }
-
-
+  },
 }; // End of adminControllers object
 
 module.exports = adminControllers;

@@ -163,7 +163,7 @@ const dealerController = {
     try {
       // Ensure dealerCode is generated and unique validation is handled by Prisma
       const dealerCode = await generateDealerCode(); // Assuming this handles uniqueness or you handle P2002
-
+      console.log(dealerCode);
       // Extract specific fields from body to avoid potential issues with extra fields
       const {
         company_name,
@@ -209,11 +209,9 @@ const dealerController = {
       if (error.code === "P2002") {
         // Identify which field caused the unique constraint error
         const target = error.meta?.target?.join(", ") || "a unique field";
-        return res
-          .status(409)
-          .json({
-            error: `A dealer with the provided ${target} already exists.`,
-          });
+        return res.status(409).json({
+          error: `A dealer with the provided ${target} already exists.`,
+        });
       }
       res.status(500).json({ error: error.message || "Internal Server Error" }); // Changed from 400 to 500 for unexpected errors
     }
@@ -251,8 +249,8 @@ const dealerController = {
       // Filter out undefined values from the mapped data
       const filteredUpdateData = Object.fromEntries(
         Object.entries(prismaUpdateData).filter(
-          ([_, value]) => value !== undefined
-        )
+          ([_, value]) => value !== undefined,
+        ),
       );
 
       // Handle the deletedAt field for potential undelete
@@ -276,11 +274,9 @@ const dealerController = {
       // Handle unique constraint violation on update
       if (error.code === "P2002") {
         const target = error.meta?.target?.join(", ") || "a unique field";
-        return res
-          .status(409)
-          .json({
-            error: `A dealer with the provided ${target} already exists.`,
-          });
+        return res.status(409).json({
+          error: `A dealer with the provided ${target} already exists.`,
+        });
       }
       res.status(500).json({ error: error.message || "Internal Server Error" }); // Changed from 400 to 500
     }
@@ -364,11 +360,9 @@ const dealerController = {
       // Handle potential unique constraint violation on document fields if applicable
       if (error.code === "P2002") {
         const target = error.meta?.target?.join(", ") || "a unique field";
-        return res
-          .status(409)
-          .json({
-            error: `A document with the provided ${target} already exists for this dealer.`,
-          });
+        return res.status(409).json({
+          error: `A document with the provided ${target} already exists for this dealer.`,
+        });
       }
       res.status(500).json({ error: error.message || "Internal Server Error" }); // Changed from 400 to 500
     }
