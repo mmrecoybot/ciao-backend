@@ -133,7 +133,7 @@ model adminRefreshToken {
 
 model Category {
   id          Int           @id @default(autoincrement())
-  name        String        @unique
+  name        String
   description String?
   products    Product[]
   subCategory subCategory[]
