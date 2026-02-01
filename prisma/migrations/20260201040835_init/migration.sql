@@ -406,12 +406,12 @@ CREATE TABLE "Dealer" (
     "vatNumber" TEXT,
     "taxCode" TEXT,
     "adminPhone" TEXT NOT NULL,
-    "pecEmail" TEXT,
     "adminEmail" TEXT NOT NULL,
+    "pecEmail" TEXT,
+    "recoveryEmail" TEXT,
     "iban" TEXT,
     "paymentMethod" TEXT,
     "accountNumber" TEXT,
-    "recoveryEmail" TEXT,
     "websiteUrl" TEXT,
     "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
     "updatedAt" TIMESTAMP(3) NOT NULL,
@@ -862,27 +862,6 @@ CREATE INDEX "notification_createdAt_idx" ON "notification"("createdAt");
 
 -- CreateIndex
 CREATE UNIQUE INDEX "Dealer_dealerCode_key" ON "Dealer"("dealerCode");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Dealer_companyName_key" ON "Dealer"("companyName");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Dealer_vatNumber_key" ON "Dealer"("vatNumber");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Dealer_adminPhone_key" ON "Dealer"("adminPhone");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Dealer_pecEmail_key" ON "Dealer"("pecEmail");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Dealer_adminEmail_key" ON "Dealer"("adminEmail");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Dealer_iban_key" ON "Dealer"("iban");
-
--- CreateIndex
-CREATE UNIQUE INDEX "Dealer_recoveryEmail_key" ON "Dealer"("recoveryEmail");
 
 -- CreateIndex
 CREATE INDEX "Dealer_companyName_idx" ON "Dealer"("companyName");
