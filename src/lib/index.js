@@ -1,4 +1,5 @@
 const prisma = require("../config/db");
+const crypto = require("crypto");
 
 /**
  * Generates the next sequential product code based on the last created non-deleted product.
@@ -6,45 +7,9 @@ const prisma = require("../config/db");
  * @returns {Promise<string>} The generated product code.
  * @throws {Error} If a database error occurs.
  */
-const generateProductCode = async () => {
-  try {
-    // Find the last created product that is NOT soft-deleted, ordered by ID descending.
-    const lastProduct = await prisma.product.findFirst({
-      where: { deletedAt: null }, // Only consider non-deleted products
-      orderBy: { id: "desc" },
-      select: { product_code: true }, // Only select the code field
-    });
 
-    // If no non-deleted product is found, start from "000" (the logic will increment to "001").
-    // If found, use its product_code. Assuming product_code is always a 3-digit number string.
-    let lastCodeNumeric = lastProduct?.product_code
-      ? parseInt(lastProduct.product_code, 10)
-      : 0; // Default to 0 if no product or no code
-
-    // Check if parsing failed (unexpected format)
-    if (isNaN(lastCodeNumeric)) {
-      console.warn(
-        `Unexpected product_code format found: ${lastProduct.product_code}. Starting next code from 0.`,
-      );
-      // Decide how to handle this: either throw or reset sequence
-      // throw new Error(`Unexpected product_code format found on last product: ${lastProduct.product_code}`);
-      lastCodeNumeric = 0; // Reset sequence if format is bad
-    }
-
-    const nextCodeNumeric = lastCodeNumeric + 1;
-    const newCode = String(nextCodeNumeric).padStart(3, "0"); // Pad to 3 digits
-
-    console.log(
-      `Generated new product code: ${newCode} (based on last non-deleted code: ${lastProduct?.product_code || "N/A"})`,
-    );
-
-    return newCode;
-  } catch (error) {
-    console.error("Error generating product code:", error);
-    // Re-throw the error so the caller knows the generation failed
-    throw new Error("Failed to generate unique product code.");
-  }
-};
+const generateProductCode = () =>
+  "PRD-" + crypto.randomUUID().slice(0, 8).toUpperCase();
 
 /**
  * Generates the next sequential dealer code based on the last created non-deleted dealer.
