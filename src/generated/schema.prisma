@@ -133,7 +133,7 @@ model adminRefreshToken {
 
 model Category {
   id          Int           @id @default(autoincrement())
-  name        String        @unique
+  name        String
   description String?
   products    Product[]
   subCategory subCategory[]
@@ -143,7 +143,7 @@ model Category {
 
 model subCategory {
   id          Int       @id @default(autoincrement())
-  name        String    @unique
+  name        String
   description String?
   categoryId  Int
   category    Category  @relation(fields: [categoryId], references: [id])
@@ -154,7 +154,7 @@ model subCategory {
 
 model Brand {
   id          Int       @id @default(autoincrement())
-  name        String    @unique
+  name        String
   description String?
   logo        String?
   products    Product[]

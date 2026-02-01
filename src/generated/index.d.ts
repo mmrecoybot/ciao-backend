@@ -56356,16 +56356,16 @@ export namespace Prisma {
 
   export type CategoryWhereUniqueInput = Prisma.AtLeast<{
     id?: number
-    name?: string
     AND?: CategoryWhereInput | CategoryWhereInput[]
     OR?: CategoryWhereInput[]
     NOT?: CategoryWhereInput | CategoryWhereInput[]
+    name?: StringFilter<"Category"> | string
     description?: StringNullableFilter<"Category"> | string | null
     logo?: StringNullableFilter<"Category"> | string | null
     deletedAt?: DateTimeNullableFilter<"Category"> | Date | string | null
     products?: ProductListRelationFilter
     subCategory?: SubCategoryListRelationFilter
-  }, "id" | "name">
+  }, "id">
 
   export type CategoryOrderByWithAggregationInput = {
     id?: SortOrder
@@ -56418,17 +56418,17 @@ export namespace Prisma {
 
   export type subCategoryWhereUniqueInput = Prisma.AtLeast<{
     id?: number
-    name?: string
     AND?: subCategoryWhereInput | subCategoryWhereInput[]
     OR?: subCategoryWhereInput[]
     NOT?: subCategoryWhereInput | subCategoryWhereInput[]
+    name?: StringFilter<"subCategory"> | string
     description?: StringNullableFilter<"subCategory"> | string | null
     categoryId?: IntFilter<"subCategory"> | number
     logo?: StringNullableFilter<"subCategory"> | string | null
     deletedAt?: DateTimeNullableFilter<"subCategory"> | Date | string | null
     category?: XOR<CategoryScalarRelationFilter, CategoryWhereInput>
     Product?: ProductListRelationFilter
-  }, "id" | "name">
+  }, "id">
 
   export type subCategoryOrderByWithAggregationInput = {
     id?: SortOrder
@@ -56479,15 +56479,15 @@ export namespace Prisma {
 
   export type BrandWhereUniqueInput = Prisma.AtLeast<{
     id?: number
-    name?: string
     AND?: BrandWhereInput | BrandWhereInput[]
     OR?: BrandWhereInput[]
     NOT?: BrandWhereInput | BrandWhereInput[]
+    name?: StringFilter<"Brand"> | string
     description?: StringNullableFilter<"Brand"> | string | null
     logo?: StringNullableFilter<"Brand"> | string | null
     deletedAt?: DateTimeNullableFilter<"Brand"> | Date | string | null
     products?: ProductListRelationFilter
-  }, "id" | "name">
+  }, "id">
 
   export type BrandOrderByWithAggregationInput = {
     id?: SortOrder
