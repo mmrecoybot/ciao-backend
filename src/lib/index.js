@@ -18,33 +18,9 @@ const generateProductCode = () =>
  * @throws {Error} If a database error occurs or dealer code format is unexpected.
  */
 
-const generateDealerCode = async () => {
-  try {
-    const lastDealer = await prisma.dealer.findFirst({
-      orderBy: { id: "desc" }, // include soft-deleted records
-      select: { dealerCode: true },
-    });
-
-    const lastCode = lastDealer?.dealerCode || "D000";
-
-    const numericPart = parseInt(lastCode.slice(1), 10);
-
-    if (Number.isNaN(numericPart)) {
-      throw new Error(`Invalid dealerCode format in DB: ${lastCode}`);
-    }
-
-    const nextNumber = numericPart + 1;
-    const newCode = `D${String(nextNumber).padStart(3, "0")}`;
-
-    console.log(`[DealerCode] Generated: ${newCode}`);
-
-    return newCode;
-  } catch (err) {
-    console.error("[DealerCode] Generation failed:", err);
-    throw err;
-  }
-};
-
+function generateDealerCode() {
+  return `DLR-${crypto.randomUUID().slice(0, 8).toUpperCase()}`;
+}
 async function generateOrderId(userId) {
   const userOrderNum = await prisma.order.count({
     where: { userId: userId },

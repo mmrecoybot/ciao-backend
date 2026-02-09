@@ -42,6 +42,11 @@
 const prisma = require("../../config/db");
 const { generateDealerCode } = require("../../lib"); // Assuming this exists and works
 
+const emptyToNull = (value) => {
+  if (value === "") return null;
+  return value;
+};
+
 const dealerController = {
   // Get all dealers
   getAllDealers: async (req, res) => {
@@ -162,7 +167,7 @@ const dealerController = {
   createDealer: async (req, res) => {
     try {
       // Ensure dealerCode is generated and unique validation is handled by Prisma
-      const dealerCode = await generateDealerCode(); // Assuming this handles uniqueness or you handle P2002
+      const dealerCode = generateDealerCode(); // Assuming this handles uniqueness or you handle P2002
       console.log(dealerCode);
       // Extract specific fields from body to avoid potential issues with extra fields
       const {
@@ -181,30 +186,31 @@ const dealerController = {
       } = req.body;
 
       // Basic validation for required fields if any
-      if (!company_name) {
-        return res.status(400).json({ error: "company_name is required" });
-      }
+      // if (!company_name) {
+      //   return res.status(400).json({ error: "company_name is required" });
+      // }
 
       const dealer = await prisma.dealer.create({
         data: {
           companyName: company_name,
-          vatNumber: vat_number,
-          taxCode: tax_code,
+          vatNumber: emptyToNull(vat_number),
+          taxCode: emptyToNull(tax_code),
           adminPhone: admin_phone,
-          pecEmail: pec_email,
+          pecEmail: emptyToNull(pec_email),
           adminEmail: admin_email,
-          iban: iban,
-          paymentMethod: payment_method,
-          accountNumber: account_number,
-          recoveryEmail: recovery_email,
-          websiteUrl: website_url,
-          dealerCode, // Use the generated unique code
-          // deletedAt will be null by default
+          iban: emptyToNull(iban),
+          paymentMethod: emptyToNull(payment_method),
+          accountNumber: emptyToNull(account_number),
+          recoveryEmail: emptyToNull(recovery_email),
+          websiteUrl: emptyToNull(website_url),
+          dealerCode,
         },
       });
+
       res.status(201).json(dealer); // Use status 201
     } catch (error) {
-      console.error("Error creating dealer:", error); // Log the error
+      console.error("FULL PRISMA ERROR 👉", JSON.stringify(error, null, 2));
+      // console.error("Error creating dealer:", error); // Log the error
       // Handle unique constraint violation error specifically
       if (error.code === "P2002") {
         // Identify which field caused the unique constraint error

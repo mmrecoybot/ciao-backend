@@ -8,30 +8,26 @@ datasource db {
   provider = "postgresql"
 }
 
-// ... rest of your models
-
-// ... rest of your models (Role, Permission, Admin, User, etc.) remain exactly the same
-
 model Role {
   id          Int          @id @default(autoincrement())
   name        String       @unique
   description String?
-  permissions Permission[]
-  users       User[]
   createdAt   DateTime     @default(now())
   updatedAt   DateTime     @updatedAt
-  deletedAt   DateTime? // NULL means not deleted
+  deletedAt   DateTime?
   Admin       Admin[]
+  users       User[]
+  permissions Permission[] @relation("PermissionToRole")
 }
 
 model Permission {
   id          Int       @id @default(autoincrement())
   name        String    @unique
   description String?
-  roles       Role[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
-  deletedAt   DateTime? // NULL means not deleted
+  deletedAt   DateTime?
+  roles       Role[]    @relation("PermissionToRole")
 }
 
 model Admin {
@@ -40,10 +36,10 @@ model Admin {
   name              String?
   password          String
   roleId            Int
-  role              Role                @relation(fields: [roleId], references: [id])
   createdAt         DateTime            @default(now())
   updatedAt         DateTime            @default(now()) @updatedAt
-  deletedAt         DateTime? // NULL means not deleted
+  deletedAt         DateTime?
+  role              Role                @relation(fields: [roleId], references: [id])
   adminRefreshToken adminRefreshToken[]
 
   @@index([email])
@@ -58,24 +54,24 @@ model User {
   password             String
   image                String?
   roleId               Int
-  role                 Role                 @relation(fields: [roleId], references: [id])
   createdAt            DateTime             @default(now())
   updatedAt            DateTime             @default(now()) @updatedAt
-  refreshToken         refreshToken[]
-  Order                Order[]
-  Cart                 Cart[]
-  Address              Address[]
-  notification         notification[]
   dealerId             Int?
-  dealer               Dealer?              @relation(fields: [dealerId], references: [id])
-  Actor                Actor[]
   passwordResetExpires DateTime?
   passwordResetToken   String?
+  deletedAt            DateTime?
   Activation           Activation[]
+  Actor                Actor[]
+  Address              Address[]
+  Cart                 Cart[]
+  Order                Order[]
   OrderStatusHistory   OrderStatusHistory[]
-  passwordReset        passwordReset?
+  dealer               Dealer?              @relation(fields: [dealerId], references: [id])
+  role                 Role                 @relation(fields: [roleId], references: [id])
+  notification         notification[]
   otp                  otp?
-  deletedAt            DateTime? // NULL means not deleted
+  passwordReset        passwordReset?
+  refreshToken         refreshToken[]
 
   @@index([email])
   @@index([roleId])
@@ -87,9 +83,9 @@ model passwordReset {
   id        Int       @id @default(autoincrement())
   token     String    @unique
   userId    Int       @unique
-  user      User      @relation(fields: [userId], references: [id])
   createdAt DateTime  @default(now())
-  deletedAt DateTime? // NULL means not deleted
+  deletedAt DateTime?
+  user      User      @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([createdAt])
@@ -99,9 +95,9 @@ model otp {
   id        Int       @id @default(autoincrement())
   token     String    @unique
   userId    Int       @unique
-  user      User      @relation(fields: [userId], references: [id])
   createdAt DateTime  @default(now())
-  deletedAt DateTime? // NULL means not deleted
+  deletedAt DateTime?
+  user      User      @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([createdAt])
@@ -111,9 +107,9 @@ model refreshToken {
   id        Int       @id @default(autoincrement())
   token     String    @unique
   userId    Int
-  user      User      @relation(fields: [userId], references: [id])
   createdAt DateTime  @default(now())
-  deletedAt DateTime? // NULL means not deleted
+  deletedAt DateTime?
+  user      User      @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([createdAt])
@@ -123,9 +119,9 @@ model adminRefreshToken {
   id        Int       @id @default(autoincrement())
   token     String    @unique
   adminId   Int
-  admin     Admin     @relation(fields: [adminId], references: [id])
   createdAt DateTime  @default(now())
-  deletedAt DateTime? // NULL means not deleted
+  deletedAt DateTime?
+  admin     Admin     @relation(fields: [adminId], references: [id])
 
   @@index([adminId])
   @@index([createdAt])
@@ -133,65 +129,63 @@ model adminRefreshToken {
 
 model Category {
   id          Int           @id @default(autoincrement())
-  name        String
+  name        String        @unique
   description String?
+  logo        String?
+  deletedAt   DateTime?
   products    Product[]
   subCategory subCategory[]
-  logo        String?
-  deletedAt   DateTime? // NULL means not deleted
 }
 
 model subCategory {
   id          Int       @id @default(autoincrement())
-  name        String
+  name        String    @unique
   description String?
   categoryId  Int
-  category    Category  @relation(fields: [categoryId], references: [id])
   logo        String?
+  deletedAt   DateTime?
   Product     Product[]
-  deletedAt   DateTime? // NULL means not deleted
+  category    Category  @relation(fields: [categoryId], references: [id])
 }
 
 model Brand {
   id          Int       @id @default(autoincrement())
-  name        String
+  name        String    @unique
   description String?
   logo        String?
+  deletedAt   DateTime?
   products    Product[]
-  deletedAt   DateTime? // NULL means not deleted
 }
 
 model Product {
   id             Int                @id @default(autoincrement())
   name           String             @unique
-  description    String             @db.Text
-  descriptionIt  String             @db.Text
+  description    String
+  descriptionIt  String
   dealer_price   Decimal
   retail_price   Decimal
   purchase_price Decimal
   margin         Decimal
   product_code   String             @unique
   discount       Decimal            @default(0)
-  variations     ProductVariation[] // Relation to product variations
   categoryId     Int
-  category       Category           @relation(fields: [categoryId], references: [id])
   subCategoryId  Int
-  subCategory    subCategory        @relation(fields: [subCategoryId], references: [id])
   createdAt      DateTime           @default(now())
   updatedAt      DateTime           @default(now()) @updatedAt
-  deletedAt      DateTime? // NULL means not deleted
+  deletedAt      DateTime?
   brandId        Int                @default(1)
-  brand          Brand              @relation(fields: [brandId], references: [id])
   thumbnail      String?
-
-  Offer      Offer[]
-  Order      Order[]     @relation("OrderProducts")
-  OrderItem  OrderItem[]
-  CartItem   CartItem[]
-  Cart       Cart[]      @relation("OrderProducts")
-  totalSales Int         @default(0)
-  viewCount  Int         @default(0)
-  isActive   Boolean     @default(true)
+  totalSales     Int                @default(0)
+  viewCount      Int                @default(0)
+  isActive       Boolean            @default(true)
+  CartItem       CartItem[]
+  OrderItem      OrderItem[]
+  brand          Brand              @relation(fields: [brandId], references: [id])
+  category       Category           @relation(fields: [categoryId], references: [id])
+  subCategory    subCategory        @relation(fields: [subCategoryId], references: [id])
+  variations     ProductVariation[]
+  Offer          Offer[]            @relation("OfferToProduct")
+  Order          Cart[]             @relation("OrderProducts")
 
   @@index([categoryId])
   @@index([subCategoryId])
@@ -206,24 +200,21 @@ model ProductVariation {
   color     String
   stock     Int
   productId Int
-  product   Product     @relation(fields: [productId], references: [id])
-  deletedAt DateTime? // NULL means not deleted
-  OrderItem OrderItem[]
+  deletedAt DateTime?
   CartItem  CartItem[]
+  OrderItem OrderItem[]
+  product   Product     @relation(fields: [productId], references: [id])
 }
 
 model Order {
   id                      Int                  @id @default(autoincrement())
   userId                  Int
-  user                    User                 @relation(fields: [userId], references: [id])
-  products                Product[]            @relation("OrderProducts")
   total                   Decimal
   status                  String
   createdAt               DateTime             @default(now())
   updatedAt               DateTime             @default(now()) @updatedAt
-  deletedAt               DateTime? // NULL means not deleted
-  OrderItem               OrderItem[]
-  subtotal                Decimal              @default(0) // Before tax/discounts
+  deletedAt               DateTime?
+  subtotal                Decimal              @default(0)
   tax                     Decimal              @default(0)
   discount                Decimal              @default(0)
   shippingCost            Decimal              @default(0)
@@ -242,6 +233,8 @@ model Order {
   returnReason            String?
   returnStatus            String?
   remarks                 String?
+  user                    User                 @relation(fields: [userId], references: [id])
+  OrderItem               OrderItem[]
   OrderStatusHistory      OrderStatusHistory[]
 
   @@index([userId])
@@ -253,18 +246,18 @@ model Order {
 model OrderItem {
   id          Int              @id @default(autoincrement())
   orderId     Int
-  order       Order            @relation(fields: [orderId], references: [id])
   productId   Int
-  product     Product          @relation(fields: [productId], references: [id])
   variationId Int
-  variation   ProductVariation @relation(fields: [variationId], references: [id]) // Store selected variation details (e.g., color, size)
   quantity    Int
   price       Decimal?
   discount    Decimal?
   color       String?
   img         String?
   createdAt   DateTime         @default(now())
-  deletedAt   DateTime? // NULL means not deleted
+  deletedAt   DateTime?
+  order       Order            @relation(fields: [orderId], references: [id])
+  product     Product          @relation(fields: [productId], references: [id])
+  variation   ProductVariation @relation(fields: [variationId], references: [id])
 }
 
 model OrderStatusHistory {
@@ -272,11 +265,11 @@ model OrderStatusHistory {
   orderId     Int
   status      String
   changedById Int
-  remarks     String? // Track remarks in the history table
+  remarks     String?
   changedAt   DateTime  @default(now())
+  deletedAt   DateTime?
   changedBy   User      @relation(fields: [changedById], references: [id])
   order       Order     @relation(fields: [orderId], references: [id])
-  deletedAt   DateTime? // NULL means not deleted
 
   @@index([orderId])
   @@index([changedAt])
@@ -286,13 +279,13 @@ model OrderStatusHistory {
 model Cart {
   id        Int        @id @default(autoincrement())
   userId    Int
-  user      User       @relation(fields: [userId], references: [id])
-  products  Product[]  @relation("OrderProducts")
-  items     CartItem[] // Relation to CartItem
-  total     Decimal    @default(0) // Calculated from CartItem
+  total     Decimal    @default(0)
   createdAt DateTime   @default(now())
   updatedAt DateTime   @default(now()) @updatedAt
-  deletedAt DateTime? // NULL means not deleted
+  deletedAt DateTime?
+  user      User       @relation(fields: [userId], references: [id])
+  items     CartItem[]
+  products  Product[]  @relation("OrderProducts")
 
   @@index([userId])
   @@index([createdAt])
@@ -301,20 +294,19 @@ model Cart {
 model CartItem {
   id          Int              @id @default(autoincrement())
   cartId      Int
-  cart        Cart             @relation(fields: [cartId], references: [id])
   productId   Int
-  product     Product          @relation(fields: [productId], references: [id])
   variationId Int
-  variation   ProductVariation @relation(fields: [variationId], references: [id]) // Optional, if product has variations
-  quantity    Int              @default(1) // Quantity of the product in the cart
+  quantity    Int              @default(1)
   createdAt   DateTime         @default(now())
-  deletedAt   DateTime? // NULL means not deleted
+  deletedAt   DateTime?
+  cart        Cart             @relation(fields: [cartId], references: [id])
+  product     Product          @relation(fields: [productId], references: [id])
+  variation   ProductVariation @relation(fields: [variationId], references: [id])
 }
 
 model Address {
   id        Int       @id @default(autoincrement())
   userId    Int
-  user      User      @relation(fields: [userId], references: [id])
   address   String
   city      String
   state     String
@@ -322,40 +314,38 @@ model Address {
   zip       String
   createdAt DateTime  @default(now())
   updatedAt DateTime  @default(now()) @updatedAt
-  deletedAt DateTime? // NULL means not deleted
+  deletedAt DateTime?
+  user      User      @relation(fields: [userId], references: [id])
 }
 
 model Company {
-  id          Int       @id @default(autoincrement())
-  name        String    @unique
-  description String?
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @default(now()) @updatedAt
-  deletedAt   DateTime? // NULL means not deleted
-  Tarrif      Tarrif[]
-  logo        String?
-
-  Activation Activation[]
-
+  id           Int            @id @default(autoincrement())
+  name         String         @unique
+  description  String?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @default(now()) @updatedAt
+  deletedAt    DateTime?
+  logo         String?
+  Activation   Activation[]
+  Tarrif       Tarrif[]
   serialNumber serialNumber[]
 }
 
 model Tarrif {
-  id             Int       @id @default(autoincrement())
-  name           String    @unique
+  id             Int          @id @default(autoincrement())
+  name           String       @unique
   description    String?
-  createdAt      DateTime  @default(now())
-  updatedAt      DateTime  @default(now()) @updatedAt
-  deletedAt      DateTime? // NULL means not deleted
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @default(now()) @updatedAt
+  deletedAt      DateTime?
   companyId      Int
-  company        Company   @relation(fields: [companyId], references: [id])
   categoryOffer  String
   categoryTarrif String
   portability    String
   client         String
   price          Decimal
-
-  Activation Activation[]
+  Activation     Activation[]
+  company        Company      @relation(fields: [companyId], references: [id])
 }
 
 model TarrifOptions {
@@ -364,7 +354,7 @@ model TarrifOptions {
   description String?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @default(now()) @updatedAt
-  deletedAt   DateTime? // NULL means not deleted
+  deletedAt   DateTime?
 }
 
 model Activation {
@@ -386,15 +376,15 @@ model Activation {
   status              String       @default("Pending")
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @default(now()) @updatedAt
-  deletedAt           DateTime? // NULL means not deleted
+  deletedAt           DateTime?
   userId              Int
   tarrifId            Int
   serialNumberId      Int
   companyId           Int
-  user                User         @relation(fields: [userId], references: [id])
-  tarrif              Tarrif       @relation(fields: [tarrifId], references: [id])
-  serialNumber        serialNumber @relation(fields: [serialNumberId], references: [id])
   company             Company      @relation(fields: [companyId], references: [id])
+  serialNumber        serialNumber @relation(fields: [serialNumberId], references: [id])
+  tarrif              Tarrif       @relation(fields: [tarrifId], references: [id])
+  user                User         @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([tarrifId])
@@ -407,13 +397,13 @@ model serialNumber {
   id         Int          @id @default(autoincrement())
   number     String       @unique
   companyId  Int?
-  company    Company?     @relation(fields: [companyId], references: [id])
   dealerId   Int?
-  dealer     Dealer?      @relation(fields: [dealerId], references: [id])
   createdAt  DateTime     @default(now())
   updatedAt  DateTime     @default(now()) @updatedAt
-  deletedAt  DateTime? // NULL means not deleted
+  deletedAt  DateTime?
   Activation Activation[]
+  company    Company?     @relation(fields: [companyId], references: [id])
+  dealer     Dealer?      @relation(fields: [dealerId], references: [id])
 
   @@index([companyId])
   @@index([dealerId])
@@ -424,21 +414,21 @@ model Offer {
   id            Int             @id @default(autoincrement())
   name          String          @unique
   description   String?
-  products      Product[]
   createdAt     DateTime        @default(now())
   updatedAt     DateTime        @default(now()) @updatedAt
-  deletedAt     DateTime? // NULL means not deleted
-  OfferCategory OfferCategory[]
+  deletedAt     DateTime?
+  OfferCategory OfferCategory[] @relation("OfferToOfferCategory")
+  products      Product[]       @relation("OfferToProduct")
 }
 
 model OfferCategory {
   id          Int       @id @default(autoincrement())
   name        String    @unique
   description String?
-  offers      Offer[]
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @default(now()) @updatedAt
-  deletedAt   DateTime? // NULL means not deleted
+  deletedAt   DateTime?
+  offers      Offer[]   @relation("OfferToOfferCategory")
 }
 
 model notification {
@@ -448,11 +438,11 @@ model notification {
   type      String?
   link      String?
   userId    Int
-  user      User      @relation(fields: [userId], references: [id])
   seen      Boolean
   createdAt DateTime  @default(now())
   updatedAt DateTime  @default(now()) @updatedAt
-  deletedAt DateTime? // NULL means not deleted
+  deletedAt DateTime?
+  user      User      @relation(fields: [userId], references: [id])
 
   @@index([userId])
   @@index([seen])
@@ -460,36 +450,29 @@ model notification {
 }
 
 model Dealer {
-  id Int @id @default(autoincrement())
-
-  dealerCode String @unique // system identity
-
-  companyName String
-  vatNumber   String?
-  taxCode     String?
-
-  adminPhone    String
-  adminEmail    String
-  pecEmail      String?
-  recoveryEmail String?
-
-  iban          String?
-  paymentMethod String?
-  accountNumber String?
-  websiteUrl    String?
-
+  id              Int              @id @default(autoincrement())
+  dealerCode      String           @unique
+  companyName     String           @unique
+  vatNumber       String?          @unique
+  taxCode         String?
+  adminPhone      String           @unique
+  pecEmail        String?          @unique
+  adminEmail      String           @unique
+  iban            String?          @unique
+  paymentMethod   String?
+  accountNumber   String?
+  recoveryEmail   String?          @unique
+  websiteUrl      String?
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+  deletedAt       DateTime?
   billingAddress  BillingAddress?
   creditDetails   CreditDetails?
+  Documents       Documents[]
   salePoints      SalePoint[]
   signedContracts SignedContract[]
-
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
-  deletedAt DateTime?
-
-  User         User[]
-  Documents    Documents[]
-  serialNumber serialNumber[]
+  User            User[]
+  serialNumber    serialNumber[]
 
   @@index([companyName])
   @@index([vatNumber])
@@ -497,16 +480,6 @@ model Dealer {
   @@index([dealerCode])
 }
 
-// Name of company:
-// P. IVA :
-// Address:
-// Postal code:
-// City:
-// Country:
-// Email: 
-// Mobile:
-// Document attachment file:
-// Visura attachment file:
 model BillingAddress {
   id           Int       @id @default(autoincrement())
   dealerId     Int       @unique
@@ -516,8 +489,8 @@ model BillingAddress {
   country      String
   municipality String
   province     String
+  deletedAt    DateTime?
   dealer       Dealer    @relation(fields: [dealerId], references: [id])
-  deletedAt    DateTime? // NULL means not deleted
 }
 
 model CreditDetails {
@@ -528,8 +501,8 @@ model CreditDetails {
   availableCreditLimit Float
   escudo               Float
   creditForTopUps      Float
+  deletedAt            DateTime?
   dealer               Dealer    @relation(fields: [dealerId], references: [id])
-  deletedAt            DateTime? // NULL means not deleted
 }
 
 model SalePoint {
@@ -540,8 +513,8 @@ model SalePoint {
   city        String
   province    String
   phoneNumber String
+  deletedAt   DateTime?
   dealer      Dealer    @relation(fields: [dealerId], references: [id])
-  deletedAt   DateTime? // NULL means not deleted
 }
 
 model SignedContract {
@@ -550,8 +523,8 @@ model SignedContract {
   name      String
   signedOn  DateTime
   fileUrl   String
+  deletedAt DateTime?
   dealer    Dealer    @relation(fields: [dealerId], references: [id])
-  deletedAt DateTime? // NULL means not deleted
 }
 
 model Documents {
@@ -559,32 +532,32 @@ model Documents {
   dealerId  Int
   name      String
   fileUrl   String
+  deletedAt DateTime?
   dealer    Dealer    @relation(fields: [dealerId], references: [id])
-  deletedAt DateTime? // NULL means not deleted
 }
 
 model Workflow {
   id          Int            @id @default(autoincrement())
-  type        String // e.g., "Order", "Cancellation"
-  referenceId String // e.g., Order ID, Transaction ID
-  status      String // Current status, e.g., "Pending", "Completed", "Canceled"
+  type        String
+  referenceId String
+  status      String
   createdAt   DateTime       @default(now())
   updatedAt   DateTime       @updatedAt
+  deletedAt   DateTime?
   steps       WorkflowStep[]
-  deletedAt   DateTime? // NULL means not deleted
 }
 
 model WorkflowStep {
   id         Int       @id @default(autoincrement())
   workflowId Int
-  action     String // e.g., "Order Placed", "Payment Processed", "Order Canceled"
-  actorId    Int // Reference to the User or System
-  actorRole  String // Role of the actor, e.g., "Customer", "Admin", "System"
-  metadata   Json? // Additional info, e.g., { "reason": "User Request" }
+  action     String
+  actorId    Int
+  actorRole  String
+  metadata   Json?
   createdAt  DateTime  @default(now())
+  deletedAt  DateTime?
   workflow   Workflow  @relation(fields: [workflowId], references: [id])
-  deletedAt  DateTime? // NULL means not deleted
-  Actor      Actor[]
+  Actor      Actor[]   @relation("ActorToWorkflowStep")
 
   @@index([workflowId])
   @@index([actorId])
@@ -594,12 +567,12 @@ model WorkflowStep {
 model Actor {
   id        Int            @id @default(autoincrement())
   name      String
-  role      String // e.g., "Admin", "Customer", "System"
+  role      String
   email     String?        @unique
   userId    Int?
+  deletedAt DateTime?
   user      User?          @relation(fields: [userId], references: [id])
-  workflows WorkflowStep[]
-  deletedAt DateTime? // NULL means not deleted
+  workflows WorkflowStep[] @relation("ActorToWorkflowStep")
 }
 
 model Banner {
@@ -608,30 +581,28 @@ model Banner {
   image     String
   createdAt DateTime  @default(now())
   updatedAt DateTime  @default(now()) @updatedAt
-  deletedAt DateTime? // NULL means not deleted
+  deletedAt DateTime?
 }
 
 model Pages {
-  id          Int       @id @default(autoincrement())
+  id          Int        @id @default(autoincrement())
   title       String
   description String?
   content     String
-  createdAt   DateTime  @default(now())
-  updatedAt   DateTime  @default(now()) @updatedAt
-  deletedAt   DateTime? // NULL means not deleted
-
-  SiteInfo SiteInfo[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @default(now()) @updatedAt
+  deletedAt   DateTime?
+  SiteInfo    SiteInfo[] @relation("PagesToSiteInfo")
 }
 
 model Faq {
-  id        Int       @id @default(autoincrement())
+  id        Int        @id @default(autoincrement())
   question  String
   answer    String
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @default(now()) @updatedAt
-  deletedAt DateTime? // NULL means not deleted
-
-  SiteInfo SiteInfo[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @default(now()) @updatedAt
+  deletedAt DateTime?
+  SiteInfo  SiteInfo[] @relation("FaqToSiteInfo")
 }
 
 model SocialMedia {
@@ -640,8 +611,8 @@ model SocialMedia {
   link      String
   createdAt DateTime   @default(now())
   updatedAt DateTime   @default(now()) @updatedAt
-  deletedAt DateTime? // NULL means not deleted
-  SiteInfo  SiteInfo[]
+  deletedAt DateTime?
+  SiteInfo  SiteInfo[] @relation("SiteInfoToSocialMedia")
 }
 
 model SiteInfo {
@@ -657,12 +628,12 @@ model SiteInfo {
   city        String?
   state       String?
   zip         String?
-  socialMedia SocialMedia[]
-  pages       Pages[]
-  faq         Faq[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @default(now()) @updatedAt
-  deletedAt   DateTime? // NULL means not deleted
+  deletedAt   DateTime?
+  faq         Faq[]         @relation("FaqToSiteInfo")
+  pages       Pages[]       @relation("PagesToSiteInfo")
+  socialMedia SocialMedia[] @relation("SiteInfoToSocialMedia")
 }
 
 model Analytics {
@@ -672,9 +643,9 @@ model Analytics {
   orderCount   Int      @default(0)
   productViews Int      @default(0)
   activeUsers  Int      @default(0)
-  topProducts  Json? // Store top selling products
-  type         String // daily, weekly, monthly
-  metadata     Json? // Additional analytics data
+  topProducts  Json?
+  type         String
+  metadata     Json?
 
   @@index([date])
   @@index([type])
