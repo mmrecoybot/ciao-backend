@@ -3,6 +3,10 @@
   "version": "1.2.0",
   "description": "A basic starter for an express.js API",
   "main": "index.js",
+  "engines": {
+    "node": "24.x",
+    "npm": "11.x"
+  },
   "scripts": {
     "start": "PORT=8010 node src/index.js",
     "dev": "nodemon src/index.js",
